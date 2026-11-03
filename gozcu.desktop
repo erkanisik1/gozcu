@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Gözcü
+Name[tr]=Gözcü
+GenericName=Process Manager
+Comment=Süreçleri listele, ara, duraklat ve öldür
+Comment[tr]=Süreçleri listele, ara, duraklat ve öldür
+# İkilinin tam yolunu kendi makinenize göre düzenleyin:
+Exec=/usr/local/bin/gozcu
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+Keywords=process;task;manager;kill;süreç;görev;yönetici;
+StartupWMClass=gozcu

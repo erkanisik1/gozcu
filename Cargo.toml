@@ -1,0 +1,15 @@
+[package]
+name = "gozcu"
+version = "0.5.1"
+edition = "2021"
+description = "KDE/masaüstü için Rust süreç yöneticisi: listele, ara, duraklat, öldür"
+
+[dependencies]
+slint = "1"
+sysinfo = "0.33"
+
+[build-dependencies]
+slint-build = "1"
+
+[profile.release]
+strip = true

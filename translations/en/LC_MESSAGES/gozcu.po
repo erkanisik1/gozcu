@@ -1,0 +1,58 @@
+# English translations for gozcu (Gözcü — Süreç Yöneticisi)
+msgid ""
+msgstr ""
+"Project-Id-Version: gozcu 0.5.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+msgid "Gözcü — Süreç Yöneticisi"
+msgstr "Gözcü — Process Manager"
+
+msgid "GÖZCÜ"
+msgstr "GÖZCÜ (Watchman)"
+
+msgid "Ara: süreç adı, kullanıcı veya PID…"
+msgstr "Search: process name, user or PID…"
+
+msgid "Sıralama: {0}"
+msgstr "Sort: {0}"
+
+msgid "Yenile"
+msgstr "Refresh"
+
+msgid "PID"
+msgstr "PID"
+
+msgid "SÜREÇ"
+msgstr "PROCESS"
+
+msgid "KULLANICI"
+msgstr "USER"
+
+msgid "CPU %"
+msgstr "CPU %"
+
+msgid "BELLEK (MB)"
+msgstr "MEMORY (MB)"
+
+msgid "DURUM"
+msgstr "STATUS"
+
+msgid "Sonlandır (TERM)"
+msgstr "Terminate (TERM)"
+
+msgid "Duraklat (STOP)"
+msgstr "Pause (STOP)"
+
+msgid "Devam (CONT)"
+msgstr "Resume (CONT)"
+
+msgid "Öldür (KILL)"
+msgstr "Kill (KILL)"
+
+msgid "İpucu: bir sürecin üzerine sağ tıklayın — sonlandır, duraklat, devam veya öldür"
+msgstr "Tip: right-click a process — terminate, pause, resume or kill"
+
+msgid "PID {0} ({1}) seçildi"
+msgstr "PID {0} ({1}) selected"

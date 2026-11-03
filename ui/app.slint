@@ -1,0 +1,226 @@
+import { Button, ComboBox, LineEdit, ListView } from "std-widgets.slint";
+
+export struct ProcessItem {
+    pid: int,
+    name: string,
+    user: string,
+    cpu: string,
+    mem: string,
+    state: string,
+}
+
+component MenuRow inherits Rectangle {
+    in property <string> title;
+    in property <color> title-color: #e0e0e0;
+    callback activate();
+    height: 32px;
+    background: ta.has-hover ? #2b5d8a : transparent;
+    ta := TouchArea {
+        width: 100%;
+        height: 100%;
+        clicked => { root.activate(); }
+    }
+    Text {
+        x: 14px;
+        text: root.title;
+        color: root.title-color;
+        vertical-alignment: center;
+    }
+}
+
+export component AppWindow inherits Window {
+    title: @tr("Gözcü — Süreç Yöneticisi");
+    preferred-width: 960px;
+    preferred-height: 640px;
+    background: #1b1b1f;
+
+    in-out property <int> selected-pid;
+    in-out property <string> filter;
+    in-out property <string> status;
+    in-out property <bool> status-error;
+    in property <string> sort-label;
+    in-out property <int> lang-index: 0;
+    in property <[ProcessItem]> processes;
+
+    // sağ tık menüsü durumu
+    in-out property <bool> menu-open: false;
+    in-out property <length> menu-x;
+    in-out property <length> menu-y;
+    in-out property <int> menu-pid;
+
+    callback refresh-requested();
+    callback sort-clicked();
+    callback language-selected(string);
+    callback signal-requested(int, string); // (pid, sinyal)
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 8px;
+
+        // Üst çubuk: başlık + arama + sıralama + dil
+        HorizontalLayout {
+            height: 36px;
+            spacing: 12px;
+
+            Text {
+                text: @tr("GÖZCÜ");
+                font-weight: 700;
+                font-size: 18px;
+                vertical-alignment: center;
+                color: #4db6ac;
+            }
+            LineEdit {
+                width: 280px;
+                placeholder-text: @tr("Ara: süreç adı, kullanıcı veya PID…");
+                edited(t) => {
+                    root.filter = t;
+                    root.refresh-requested();
+                }
+            }
+            Button {
+                text: @tr("Sıralama: {0}", root.sort-label);
+                clicked => { root.sort-clicked(); }
+            }
+            Button {
+                text: @tr("Yenile");
+                clicked => { root.refresh-requested(); }
+            }
+            ComboBox {
+                width: 110px;
+                model: ["Türkçe", "English"];
+                current-index: root.lang-index;
+                selected(value) => { root.language-selected(value); }
+            }
+        }
+
+        // Sütun başlıkları
+        Rectangle {
+            height: 26px;
+            HorizontalLayout {
+                padding-left: 10px;
+                padding-right: 10px;
+                Text { text: @tr("PID");       width: 70px;  color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
+                Text { text: @tr("SÜREÇ");     horizontal-stretch: 1; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
+                Text { text: @tr("KULLANICI"); width: 110px; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
+                Text { text: @tr("CPU %");     width: 70px;  color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
+                Text { text: @tr("BELLEK (MB)"); width: 110px; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
+                Text { text: @tr("DURUM");     width: 120px; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
+            }
+        }
+
+        // Süreç listesi
+        ListView {
+            for p in root.processes: Rectangle {
+                height: 30px;
+                background: p.pid == root.selected-pid ? #2b5d8a : (ta.has-hover ? #2f2f36 : transparent);
+
+                ta := TouchArea {
+                    width: 100%;
+                    height: 100%;
+                    clicked => {
+                        root.selected-pid = p.pid;
+                        root.status = @tr("PID {0} ({1}) seçildi", p.pid, p.name);
+                        root.status-error = false;
+                    }
+                    pointer-event(ev) => {
+                        if (ev.kind == PointerEventKind.down && ev.button == PointerEventButton.right) {
+                            root.selected-pid = p.pid;
+                            root.menu-pid = p.pid;
+                            root.menu-x = ta.absolute-position.x + ta.mouse-x;
+                            root.menu-y = ta.absolute-position.y + ta.mouse-y;
+                            root.menu-open = true;
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    padding-left: 10px;
+                    padding-right: 10px;
+
+                    Text { text: p.pid;    width: 70px;  vertical-alignment: center; color: #e0e0e0; }
+                    Text { text: p.name;   horizontal-stretch: 1; overflow: elide; vertical-alignment: center; color: #e0e0e0; }
+                    Text { text: p.user;   width: 110px; vertical-alignment: center; color: #b0b0b0; }
+                    Text { text: p.cpu;    width: 70px;  vertical-alignment: center; color: #e0e0e0; }
+                    Text { text: p.mem;    width: 110px; vertical-alignment: center; color: #e0e0e0; }
+                    Text { text: p.state;  width: 120px; vertical-alignment: center; color: #b0b0b0; }
+                }
+            }
+        }
+
+        // Durum satırı
+        Text {
+            height: 22px;
+            text: root.status;
+            color: root.status-error ? #f28b82 : #81c995;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+
+        // İpucu satırı
+        Text {
+            height: 18px;
+            text: @tr("İpucu: bir sürecin üzerine sağ tıklayın — sonlandır, duraklat, devam veya öldür");
+            color: #7e7e86;
+            font-size: 12px;
+            vertical-alignment: center;
+        }
+    }
+
+    // Menü açıkken pencerenin gerisine tıklayınca kapat
+    if root.menu-open: TouchArea {
+        width: 100%;
+        height: 100%;
+        pointer-event(ev) => {
+            if (ev.kind == PointerEventKind.down) {
+                root.menu-open = false;
+            }
+        }
+    }
+
+    // Sağ tık menüsü
+    if root.menu-open: Rectangle {
+        x: min(root.menu-x, root.width - 230px);
+        y: min(root.menu-y, root.height - 180px);
+        width: 220px;
+        height: 168px;
+        background: #26262c;
+        border-radius: 6px;
+        border-width: 1px;
+        border-color: #3d3d48;
+
+        VerticalLayout {
+            padding: 4px;
+
+            MenuRow {
+                title: @tr("Sonlandır (TERM)");
+                activate => {
+                    root.menu-open = false;
+                    root.signal-requested(root.menu-pid, "term");
+                }
+            }
+            MenuRow {
+                title: @tr("Duraklat (STOP)");
+                activate => {
+                    root.menu-open = false;
+                    root.signal-requested(root.menu-pid, "stop");
+                }
+            }
+            MenuRow {
+                title: @tr("Devam (CONT)");
+                activate => {
+                    root.menu-open = false;
+                    root.signal-requested(root.menu-pid, "cont");
+                }
+            }
+            Rectangle { height: 9px; } // ayraç
+            MenuRow {
+                title: @tr("Öldür (KILL)");
+                title-color: #f28b82;
+                activate => {
+                    root.menu-open = false;
+                    root.signal-requested(root.menu-pid, "kill");
+                }
+            }
+        }
+    }
+}

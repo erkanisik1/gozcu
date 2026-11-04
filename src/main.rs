@@ -246,6 +246,41 @@ fn signal_of(sig: &str) -> Signal {
     }
 }
 
+fn signal_name(sig: &str) -> &'static str {
+    match sig {
+        "kill" => "KILL",
+        "stop" => "STOP",
+        "cont" => "CONT",
+        _ => "TERM",
+    }
+}
+
+/// root (veya başka bir kullanıcı) sahibi süreçlere pkexec üzerinden sinyal gönderir.
+/// KDE'de polkit-kde-agent parola penceresi açar; parola doğrulanırsa sinyal root olarak gönderilir.
+fn send_signal_pkexec(pid: i32, sig: &str) -> Result<(), String> {
+    let kill = if std::path::Path::new("/bin/kill").exists() {
+        "/bin/kill"
+    } else {
+        "kill"
+    };
+    let out = std::process::Command::new("pkexec")
+        .arg(kill)
+        .arg("-s")
+        .arg(signal_name(sig))
+        .arg(pid.to_string())
+        .output()
+        .map_err(|e| format!("pkexec çalıştırılamadı: {e}"))?;
+    if out.status.success() {
+        return Ok(());
+    }
+    let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
+    if err.is_empty() {
+        Err(format!("yetki alınamadı (pkexec kod {})", out.status))
+    } else {
+        Err(err)
+    }
+}
+
 fn send_signal(ui: &AppWindow, sys: &mut System, pid: i32, sig: &str, lang: Lang) {
     if pid <= 0 {
         ui.set_status(
@@ -259,28 +294,52 @@ fn send_signal(ui: &AppWindow, sys: &mut System, pid: i32, sig: &str, lang: Lang
         return;
     }
     let label = lang.signal_label(sig);
+    let euid = unsafe { libc::geteuid() };
     match sys.process(Pid::from_u32(pid as u32)) {
         Some(p) => {
             let name = p.name().to_string_lossy().to_string();
-            let ok = p.kill_with(signal_of(sig)).unwrap_or(false);
-            if ok {
-                ui.set_status(
-                    match lang {
-                        Lang::Tr => format!("{} (PID {}) sürecine {} gönderildi", name, pid, label),
-                        Lang::En => format!("{} sent to {} (PID {})", label, name, pid),
-                    }
-                    .into(),
-                );
-                ui.set_status_error(false);
+            let target_uid = p.user_id().map(|u| **u);
+            // Başka kullanıcıya (root dahil) ait süreçlerde sinyal yalnızca yetki yükseltmeyle gönderilebilir
+            let needs_elevated = euid != 0 && target_uid != Some(euid);
+            let result = if needs_elevated {
+                send_signal_pkexec(pid, sig)
             } else {
-                ui.set_status(
-                    match lang {
-                        Lang::Tr => format!("{} gönderilemedi — yetki yok olabilir (sudo ile deneyin)", label),
-                        Lang::En => format!("Could not send {} — permission denied (try sudo)", label),
-                    }
-                    .into(),
-                );
-                ui.set_status_error(true);
+                match p.kill_with(signal_of(sig)) {
+                    Some(true) => Ok(()),
+                    _ => Err(match lang {
+                        Lang::Tr => "yetki yok".to_string(),
+                        Lang::En => "permission denied".to_string(),
+                    }),
+                }
+            };
+            match result {
+                Ok(()) => {
+                    ui.set_status(
+                        if needs_elevated {
+                            match lang {
+                                Lang::Tr => format!("{} (PID {}) sürecine {} gönderildi (pkexec ile yetki yükseltildi)", name, pid, label),
+                                Lang::En => format!("{} sent to {} (PID {}) (elevated via pkexec)", label, name, pid),
+                            }
+                        } else {
+                            match lang {
+                                Lang::Tr => format!("{} (PID {}) sürecine {} gönderildi", name, pid, label),
+                                Lang::En => format!("{} sent to {} (PID {})", label, name, pid),
+                            }
+                        }
+                        .into(),
+                    );
+                    ui.set_status_error(false);
+                }
+                Err(e) => {
+                    ui.set_status(
+                        match lang {
+                            Lang::Tr => format!("{} gönderilemedi — {}", label, e),
+                            Lang::En => format!("Could not send {} — {}", label, e),
+                        }
+                        .into(),
+                    );
+                    ui.set_status_error(true);
+                }
             }
         }
         None => {

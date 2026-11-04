@@ -67,9 +67,12 @@ sabitleyebilirsiniz.
 
 ### Notlar
 
-- Başka kullanıcıya (örn. root) ait süreçleri öldürmek için uygulamanın yetkisi
-  yoktur; durum satırında "yetki yok" uyarısı alırsanız uygulamayı sudo ile
-  çalıştırmanız gerekir.
+- Başka kullanıcıya (örn. root) ait süreçlerde işlem yapmak istediğinizde
+  uygulama `pkexec` (polkit) üzerinden bir kimlik doğrulama penceresi açar;
+  yönetici/root parolanızı girerek işlemi onaylayabilirsiniz. Parola iptal
+  edilirse sinyal gönderilmez ve durum satırında hata gösterilir. (Sistemdeki
+  polkit ilkesine göre yönetici hesabının parolası istenebilir; arayüz KDE
+  polkit aracısı tarafından çizilir.)
 - Süreç durdurma/kapatma gibi eylemler geri alınamaz; SIGKILL verilen süreçte
   kaydedilmemiş veri kaybolabilir.
 
@@ -152,8 +155,12 @@ taskbar.
 
 ### Notes
 
-- The app cannot kill processes owned by other users (e.g. root); if you get a
-  "permission denied" warning in the status line, run it with sudo.
+- For processes owned by other users (e.g. root), the app opens an
+  authentication dialog via `pkexec` (polkit); entering an administrator/root
+  password authorizes the action. If cancelled, no signal is sent and the
+  status line shows an error. (Depending on your system's polkit policy an
+  admin account password is required; the dialog is drawn by the KDE polkit
+  agent.)
 - Process termination/kill actions are irreversible; unsaved data may be lost in
   a SIGKILLed process.
 

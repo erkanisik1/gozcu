@@ -1579,6 +1579,7 @@ dependencies = [
 name = "gozcu"
 version = "0.5.1"
 dependencies = [
+ "libc",
  "slint",
  "slint-build",
  "sysinfo",

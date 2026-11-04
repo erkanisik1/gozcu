@@ -7,6 +7,7 @@ description = "KDE/masaüstü için Rust süreç yöneticisi: listele, ara, dura
 [dependencies]
 slint = "1"
 sysinfo = "0.33"
+libc = "0.2"
 
 [build-dependencies]
 slint-build = "1"

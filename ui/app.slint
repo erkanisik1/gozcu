@@ -30,6 +30,7 @@ component MenuRow inherits Rectangle {
 
 export component AppWindow inherits Window {
     title: @tr("Gözcü — Süreç Yöneticisi");
+    icon: @image-url("../assets/gozcu.svg");
     preferred-width: 960px;
     preferred-height: 640px;
     background: #1b1b1f;
@@ -62,13 +63,20 @@ export component AppWindow inherits Window {
             height: 36px;
             spacing: 12px;
 
-            Text {
-                text: @tr("GÖZCÜ");
-                font-weight: 700;
-                font-size: 18px;
-                vertical-alignment: center;
-                color: #4db6ac;
-            }
+            // Image {
+            //     source: @image-url("../assets/gozcu.svg");
+            //     width: 28px;
+            //     height: 28px;
+            //     image-fit: contain;
+            //     vertical-alignment: center;
+            // }
+            // Text {
+            //     text: @tr("GÖZCÜ");
+            //     font-weight: 700;
+            //     font-size: 18px;
+            //     vertical-alignment: center;
+            //     color: #4db6ac;
+            // }
             LineEdit {
                 width: 280px;
                 placeholder-text: @tr("Ara: süreç adı, kullanıcı veya PID…");
@@ -95,16 +103,30 @@ export component AppWindow inherits Window {
 
         // Sütun başlıkları
         Rectangle {
+            background: #555555;           
             height: 26px;
+            Rectangle {
+                y: parent.height - self.height;
+                width: parent.width;
+                height: 1px;
+                background: #ebebeb;
+            }
             HorizontalLayout {
+                alignment: LayoutAlignment.stretch;
                 padding-left: 10px;
                 padding-right: 10px;
-                Text { text: @tr("PID");       width: 70px;  color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
-                Text { text: @tr("SÜREÇ");     horizontal-stretch: 1; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
-                Text { text: @tr("KULLANICI"); width: 110px; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
-                Text { text: @tr("CPU %");     width: 70px;  color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
-                Text { text: @tr("BELLEK (MB)"); width: 110px; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
-                Text { text: @tr("DURUM");     width: 120px; color: #9e9e9e; font-size: 12px; vertical-alignment: center; }
+                Text { text: @tr("PID");       width: 70px;  color: #81c995; font-size: 12px;
+                    font-weight: 600; vertical-alignment: center; }
+                Text { text: @tr("SÜREÇ");     horizontal-stretch: 1; color: #81c995; font-size: 12px;
+                    font-weight: 600; vertical-alignment: center; }
+                Text { text: @tr("KULLANICI"); width: 110px; color: #81c995; font-size: 12px;
+                    font-weight: 600; vertical-alignment: center; }
+                Text { text: @tr("CPU %");     width: 70px;  color: #81c995; font-size: 12px;
+                    font-weight: 600; vertical-alignment: center; }
+                Text { text: @tr("BELLEK (MB)"); width: 110px; color: #81c995; font-size: 12px;
+                    font-weight: 600; vertical-alignment: center; }
+                Text { text: @tr("DURUM");     width: 120px; color: #81c995; font-size: 12px;
+                    font-weight: 600; vertical-alignment: center; }
             }
         }
 
